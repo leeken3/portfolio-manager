@@ -190,6 +190,21 @@ h1 {
   margin-top: 18px;
 }
 
+.source-pill {
+  align-self: start;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 999px;
+  color: #fbbf24;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+}
+
+.source-pill.live {
+  border-color: rgba(134, 239, 172, 0.35);
+  color: #86efac;
+}
+
 .primary,
 .ghost {
   border-radius: 999px;

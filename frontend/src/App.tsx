@@ -71,6 +71,7 @@ type PortfolioAnalysis = {
     confidence: number;
   }>;
   briefing: { headline: string; summary: string; bullets: string[]; suggestions: string[] };
+  briefing_source: "rules" | "ollama";
   portfolio_scores?: PortfolioScores;
   buy_sell_zones: BuySellZone[];
 };
@@ -235,6 +236,9 @@ export default function App() {
                 <p className="eyebrow">Daily Brief</p>
                 <h2>{analysis?.briefing.headline || "Briefing will appear after analysis"}</h2>
               </div>
+              <span className={analysis?.briefing_source === "ollama" ? "source-pill live" : "source-pill"}>
+                {analysis?.briefing_source === "ollama" ? "Ollama AI" : "Rules fallback"}
+              </span>
             </div>
             <p className="summary">{analysis?.briefing.summary ?? "Refresh live prices and analyze your portfolio."}</p>
             {analysis?.briefing.bullets.length ? (

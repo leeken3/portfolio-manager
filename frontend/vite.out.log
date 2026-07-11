@@ -9,3 +9,5 @@ Re-optimizing dependencies because lockfile has changed
   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
 [2m11:55:48 p.m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
 [2m11:55:53 p.m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m12:04:34 a.m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
+[2m12:04:40 a.m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m

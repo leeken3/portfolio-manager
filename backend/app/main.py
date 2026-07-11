@@ -42,7 +42,7 @@ def analyze(payload: PortfolioRequest) -> PortfolioAnalysis:
 def briefing(payload: PortfolioRequest) -> PortfolioAnalysis:
     """Analyze portfolio and generate an AI-enhanced briefing when Ollama is available."""
     analysis = analyze_portfolio(payload)
-    analysis.briefing = generate_ai_briefing(analysis, payload.market_factors)
+    analysis.briefing, analysis.briefing_source = generate_ai_briefing(analysis, payload.market_factors)
     return analysis
 
 

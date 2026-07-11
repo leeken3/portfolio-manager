@@ -114,5 +114,6 @@ class PortfolioAnalysis(BaseModel):
     overlap_insights: list[OverlapInsight]
     watchlist_insights: list[WatchlistInsight]
     briefing: PortfolioBriefing
+    briefing_source: Literal["rules", "ollama"] = "rules"
     portfolio_scores: PortfolioScores | None = None
     buy_sell_zones: list[BuySellZone] = []

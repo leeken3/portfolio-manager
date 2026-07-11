@@ -54,15 +54,16 @@ def test_get_price_history_clamps_days(monkeypatch) -> None:
 
 
 def test_briefing_uses_ai_briefing(monkeypatch) -> None:
-    def fake_generate_ai_briefing(analysis, market_factors: list[str]) -> PortfolioBriefing:
+    def fake_generate_ai_briefing(analysis, market_factors: list[str]) -> tuple[PortfolioBriefing, str]:
         assert analysis.portfolio_value > 0
         assert market_factors == DEMO_PORTFOLIO.market_factors
-        return PortfolioBriefing(
+        briefing = PortfolioBriefing(
             headline="Good morning Ken.",
             summary="Your portfolio is live-priced and ready to review.",
             bullets=["Technology is still the main concentration."],
             suggestions=["Review new buys before adding to the largest sector."],
         )
+        return briefing, "ollama"
 
     monkeypatch.setattr("backend.app.main.generate_ai_briefing", fake_generate_ai_briefing)
 
@@ -70,3 +71,4 @@ def test_briefing_uses_ai_briefing(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["briefing"]["headline"] == "Good morning Ken."
+    assert response.json()["briefing_source"] == "ollama"

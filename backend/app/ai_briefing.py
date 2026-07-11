@@ -12,8 +12,11 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434/api/generate")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
 
 
-def _fallback_briefing(analysis: PortfolioAnalysis) -> PortfolioBriefing:
-    return analysis.briefing
+BriefingResult = tuple[PortfolioBriefing, str]
+
+
+def _fallback_briefing(analysis: PortfolioAnalysis) -> BriefingResult:
+    return analysis.briefing, "rules"
 
 
 def _briefing_prompt(analysis: PortfolioAnalysis, market_factors: list[str]) -> str:
@@ -66,7 +69,7 @@ def _parse_briefing(content: str) -> PortfolioBriefing | None:
         return None
 
 
-def generate_ai_briefing(analysis: PortfolioAnalysis, market_factors: list[str]) -> PortfolioBriefing:
+def generate_ai_briefing(analysis: PortfolioAnalysis, market_factors: list[str]) -> BriefingResult:
     """
     Generate an AI briefing through local Ollama.
 
@@ -89,4 +92,4 @@ def generate_ai_briefing(analysis: PortfolioAnalysis, market_factors: list[str])
     briefing = _parse_briefing(str(content))
     if briefing is None or not briefing.headline:
         return _fallback_briefing(analysis)
-    return briefing
+    return briefing, "ollama"
