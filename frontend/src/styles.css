@@ -178,6 +178,18 @@ h1 {
   color: #dbeafe;
 }
 
+.brief-panel h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.brief-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 18px;
+}
+
 .primary,
 .ghost {
   border-radius: 999px;
@@ -199,6 +211,10 @@ h1 {
 
 .error {
   color: #fca5a5;
+}
+
+.status {
+  color: #7dd3fc;
 }
 
 .warning {
@@ -357,5 +373,9 @@ h1 {
   .hero {
     flex-direction: column;
     align-items: start;
+  }
+
+  .brief-grid {
+    grid-template-columns: 1fr;
   }
 }

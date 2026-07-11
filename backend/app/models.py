@@ -90,6 +90,7 @@ class PortfolioScores(BaseModel):
 class BuySellZone(BaseModel):
     """Technical analysis for a position: support/resistance + conviction levels."""
     symbol: str
+    current_price: float
     support_level: float
     resistance_level: float
     buy_conviction: int

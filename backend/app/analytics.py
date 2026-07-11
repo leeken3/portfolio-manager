@@ -224,6 +224,7 @@ def _calculate_buy_sell_zones(positions: list[PositionAnalysis], top_n: int = 3)
         zones.append(
             BuySellZone(
                 symbol=position.symbol,
+                current_price=current_price,
                 support_level=support_level,
                 resistance_level=resistance_level,
                 buy_conviction=buy_conviction,

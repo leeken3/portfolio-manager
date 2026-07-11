@@ -30,6 +30,7 @@ type PortfolioScores = {
 
 type BuySellZone = {
   symbol: string;
+  current_price: number;
   support_level: number;
   resistance_level: number;
   buy_conviction: number;
@@ -87,6 +88,7 @@ export default function App() {
   const [rawInput, setRawInput] = useState("");
   const [analysis, setAnalysis] = useState<PortfolioAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [priceStatus, setPriceStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -95,6 +97,7 @@ export default function App() {
 
   const loadDemo = async () => {
     setError(null);
+    setPriceStatus(null);
     const response = await fetch("/api/demo-portfolio");
     if (!response.ok) {
       setError("Could not load the demo portfolio.");
@@ -105,18 +108,73 @@ export default function App() {
     await runAnalysis(payload);
   };
 
+  const refreshPrices = async (payload: PortfolioRequest) => {
+    const symbols = Array.from(
+      new Set([
+        ...payload.holdings.map((holding) => holding.symbol.toUpperCase()),
+        ...payload.watchlist.map((item) => item.symbol.toUpperCase()),
+      ]),
+    );
+
+    if (symbols.length === 0) {
+      setPriceStatus("No symbols to refresh.");
+      return payload;
+    }
+
+    setPriceStatus("Refreshing live prices...");
+    const response = await fetch("/api/prices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(symbols),
+    });
+
+    if (!response.ok) {
+      throw new Error("Live price refresh failed.");
+    }
+
+    const prices = (await response.json()) as Record<string, number>;
+    const getLivePrice = (symbol: string, fallback: number) => {
+      const price = prices[symbol.toUpperCase()];
+      return Number.isFinite(price) && price > 0 ? price : fallback;
+    };
+
+    const updated: PortfolioRequest = {
+      ...payload,
+      holdings: payload.holdings.map((holding) => ({
+        ...holding,
+        symbol: holding.symbol.toUpperCase(),
+        current_price: getLivePrice(holding.symbol, holding.current_price),
+      })),
+      watchlist: payload.watchlist.map((item) => ({
+        ...item,
+        symbol: item.symbol.toUpperCase(),
+        current_price: getLivePrice(item.symbol, item.current_price),
+      })),
+    };
+
+    const refreshedCount = symbols.filter((symbol) => {
+      const price = prices[symbol];
+      return Number.isFinite(price) && price > 0;
+    }).length;
+    setPriceStatus(`Live prices refreshed for ${refreshedCount}/${symbols.length} symbols.`);
+
+    return updated;
+  };
+
   const runAnalysis = async (payload?: PortfolioRequest) => {
     setBusy(true);
     setError(null);
     try {
-      const body = payload ?? JSON.parse(rawInput);
-      const response = await fetch("/api/analyze", {
+      const parsed = (payload ?? JSON.parse(rawInput)) as PortfolioRequest;
+      const body = await refreshPrices(parsed);
+      setRawInput(JSON.stringify(body, null, 2));
+      const response = await fetch("/api/briefing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       if (!response.ok) {
-        throw new Error("Analysis request failed.");
+        throw new Error("Briefing request failed.");
       }
       const next = (await response.json()) as PortfolioAnalysis;
       setAnalysis(next);
@@ -137,7 +195,7 @@ export default function App() {
           <p className="eyebrow">AI Investment Copilot</p>
           <h1>Portfolio intelligence for long-term investors</h1>
           <p className="lede">
-            See what matters today: concentration, overlap, watchlist opportunities, and a plain-English briefing.
+            Live prices, concentration, overlap, watchlist opportunities, and a plain-English briefing.
           </p>
         </div>
         <button className="ghost" onClick={() => void loadDemo()} disabled={busy}>
@@ -150,7 +208,7 @@ export default function App() {
           <div className="panel-header">
             <h2>Portfolio input</h2>
             <button className="primary" onClick={() => void runAnalysis()} disabled={busy}>
-              {busy ? "Analyzing..." : "Analyze"}
+              {busy ? "Updating..." : "Refresh prices & analyze"}
             </button>
           </div>
           <textarea
@@ -159,6 +217,7 @@ export default function App() {
             spellCheck={false}
             className="editor"
           />
+          {priceStatus ? <p className="status">{priceStatus}</p> : null}
           {error ? <p className="error">{error}</p> : null}
         </section>
 
@@ -170,8 +229,38 @@ export default function App() {
             <Metric label="Diversification" value={analysis ? `${analysis.diversification_score.toFixed(1)}/10` : "--"} />
           </div>
 
+          <div className="panel brief-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Daily Brief</p>
+                <h2>{analysis?.briefing.headline || "Briefing will appear after analysis"}</h2>
+              </div>
+            </div>
+            <p className="summary">{analysis?.briefing.summary ?? "Refresh live prices and analyze your portfolio."}</p>
+            {analysis?.briefing.bullets.length ? (
+              <div className="brief-grid">
+                <div>
+                  <h3>What matters</h3>
+                  <ul className="list">
+                    {analysis.briefing.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3>Actions</h3>
+                  <ul className="list">
+                    {analysis.briefing.suggestions.map((suggestion) => (
+                      <li key={suggestion}>{suggestion}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
           <div className="panel">
-            <h2>📊 Portfolio Health Score</h2>
+            <h2>Portfolio Health Score</h2>
             <div className="health-grid">
               <div className="health-card">
                 <div className="rating">{analysis?.overall_rating.toFixed(1) ?? "--"}/10</div>
@@ -188,18 +277,18 @@ export default function App() {
                 </>
               )}
             </div>
-            <p className="warning">⚠️ {analysis?.largest_risk ?? "--"}</p>
+            <p className="warning">{analysis?.largest_risk ?? "--"}</p>
           </div>
 
           {analysis?.buy_sell_zones.length ? (
             <div className="panel">
-              <h2>💰 Buy/Sell Zones</h2>
+              <h2>Buy/Sell Zones</h2>
               <div className="zones-list">
                 {analysis.buy_sell_zones.map((zone) => (
                   <div key={zone.symbol} className="zone-card">
                     <div className="zone-header">
                       <strong>{zone.symbol}</strong>
-                      <div className="current">Current: ${zone.resistance_level}</div>
+                      <div className="current">Current: ${zone.current_price.toFixed(2)}</div>
                     </div>
                     <div className="zone-prices">
                       <div className="price-zone">
@@ -216,7 +305,7 @@ export default function App() {
                     <div className="reasoning">
                       {zone.reasoning.map((reason) => (
                         <div key={reason} className="reason">
-                          • {reason}
+                          - {reason}
                         </div>
                       ))}
                     </div>
@@ -264,7 +353,7 @@ export default function App() {
                   <div>
                     <strong>{position.symbol}</strong>
                     <div className="muted">
-                      {position.sector} · {position.asset_type}
+                      {position.sector} / {position.asset_type}
                     </div>
                   </div>
                   <div className="right">

@@ -1,0 +1,8 @@
+INFO:     127.0.0.1:65077 - "GET /api/demo-portfolio HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65079 - "POST /api/briefing HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65131 - "GET /api/demo-portfolio HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65132 - "GET /api/demo-portfolio HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65134 - "POST /api/prices HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65136 - "POST /api/prices HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65156 - "POST /api/briefing HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65153 - "POST /api/briefing HTTP/1.1" 200 OK
